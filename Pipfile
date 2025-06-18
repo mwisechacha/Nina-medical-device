@@ -7,6 +7,7 @@ name = "pypi"
 django = "*"
 bleak = "*"
 matplotlib = "*"
+mysqlclient = "*"
 
 [dev-packages]
 

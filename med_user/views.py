@@ -6,6 +6,7 @@ import time
 import os
 import json
 from django.views.decorators.csrf import csrf_exempt
+from .models import ScreeningData
 
 waiting_screening_id = None
 
@@ -14,15 +15,15 @@ def home(request):
 
 def try_it_out(request):
     global waiting_screening_id
-     
-    if waiting_screening_id is None:
-        return render(request, 'try_it_out.html', {'screening_id': 0})
-    else:
-        return redirect('predict_diagnosis', screening_id=waiting_screening_id)
+
+    return render(request, 'med_user/wait_for_data.html', {
+        'screening_id': waiting_screening_id or 0
+    })
     
 def request_demo(request):
     pass
 
+# receive data from esp32
 @csrf_exempt
 def receive_screening_data(request):
     global waiting_screening_id
@@ -30,29 +31,46 @@ def receive_screening_data(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            sensor_data = np.array(data.get('sensor_data', []))
+
+            matrix = np.array(data.get('matrix', []))
+
+            if matrix.size == 0:
+                return render(request, 'med_user/home.html', {"error": "No matrix provided"})
 
             from .models import ScreeningData
             obj = ScreeningData.objects.create(
-                matrix_json = json.dumps(sensor_data.tolist())
+                matrix_json = json.dumps(matrix.tolist())
             )
 
             waiting_screening_id = obj.id
 
-            return render(request, 'tumor_data.html', {'screening_id': obj.id, 'sensor_data': sensor_data.reshape(3, 3)})
-        except Exception as e:
-                return render(request, 'home.html', {"error": str(e)})
-    else:
-        return render(request, 'home.html')
+            return render(request, 'med_user/tumor_data.html', {
+                'screening_id': obj.id,
+                'sensor_data': matrix.reshape(3, 3)
+            })
 
+        except Exception as e:
+            return render(request, 'med_user/home.html', {"error": str(e)})
+
+    else:
+        return render(request, 'med_user/home.html')
+    
+# second delay page
+def model_wait(request):
+    global waiting_screening_id
+
+    if waiting_screening_id is None:
+        return redirect('try_it_out')
+
+    return render(request, 'med_user/wait_for_prediction.html', {
+        'screening_id': waiting_screening_id
+    })
+
+# feed the data to the model and predict diagnosis
 def predict_diagnosis(request, screening_id):
-    from .models import ScreeningData
     obj = ScreeningData.objects.get(id=screening_id)
 
     # Run model (simulate delay)
-    import time
-    import numpy as np
-
     matrix = obj.get_matrix()
     mean_val = np.mean(matrix)
 
@@ -67,13 +85,13 @@ def predict_diagnosis(request, screening_id):
     obj.diagnosis = diagnosis
     obj.save()
 
-    # Show "waiting" page first, then redirect to result page
-    return render(request, 'prediction_wait.html', {
+
+    return render(request, 'wait_for_prediction.html', {
         'screening_id': screening_id
     })
 
+# Show the prediction result
 def prediction_result(request, screening_id):
-    from .models import ScreeningData
     obj = ScreeningData.objects.get(id=screening_id)
 
     if obj.diagnosis is None:

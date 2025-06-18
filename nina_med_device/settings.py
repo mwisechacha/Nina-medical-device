@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u!^v3*8kxoxe5r9lt88eaeoz8nw(hw1no2#9jap919uzt8&9gg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]  # Change this to your domain or IP in production
 
 
 # Application definition
@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'nina_med_device.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'med_user',  # <-- Make sure this is a string, but usually this should be just the DB name, not a path!
+        'USER': 'root',
+        'PASSWORD': 'Mwise2002',
+        'HOST': 'localhost',  # or your DB host
+        'PORT': '3306',
     }
 }
 

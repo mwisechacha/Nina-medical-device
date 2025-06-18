@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/wait_for_device.css' %}">
     <script>
         setTimeout(function(){
-            window.location.href = "{% url 'predict_and_redirect' mammogram_id %}";
+            window.location.href = "{% url 'receive_screening_data' %}";
         }, 5000);
     </script>
 </head>
