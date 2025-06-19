@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data received</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/wait_for_device.css' %}">
+</head>
+<body>
+    <div class="logo-container">
+    </div>
+    <div class="loading-container">
+        <p>Data received...</p>
+    </div>
+    {% if screening_id %}
+        <div class="action-buttons">
+            <a href="{% url 'rule_based_result' screening_id %}" class="btn">View Rule-Based Analysis</a>
+            <a href="{% url 'predict_diagnosis' screening_id %}" class="btn">View AI Model Analysis</a>
+        </div>
+    {% endif %}
+</body>
+</html>

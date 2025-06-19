@@ -7,9 +7,21 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/wait_for_device.css' %}">
     <script>
-        setTimeout(function(){
-            window.location.href = "{% url 'receive_screening_data' %}";
-        }, 5000);
+        function checkStatus() {
+            fetch("{% url 'check_data_ready' %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.ready) {
+                    // Redirect to Data Received page when data is ready
+                    window.location.href = "{% url 'show_data_received' 0 %}".replace('0', data.screening_id);
+                } else {
+                    // Check again after 2 seconds
+                    setTimeout(checkStatus, 5000);
+                }
+            });
+        }
+
+        setTimeout(checkStatus, 5000);
     </script>
 </head>
 <body>

@@ -2,34 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Data Received - Ready to Predict</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screening Results - Nina Breast Tumor Detection</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/tumor_data.css' %}">
+    <meta name="description" content="View your breast tumor screening results from Nina's ultrasonic AI device">
 </head>
 <body>
-    <div class="heat-map-body">
+    <header class="page-header">
         <div class="logo-container">
-            <img src="{% static 'images/nina-logo.png' %}" alt="Nina Logo">
+            <a href="{% url 'home' %}" aria-label="Return to home page">
+                <img src="{% static 'images/nina-logo.png' %}" alt="Nina Logo" width="150" height="60">
+            </a>
         </div>
+    </header>
+
+    <main class="results-container">
         <div class="heatmap-container">
-            <h3>Screening Results</h3>
-            <table class="heatmap">
-                {% for row in sensor_data %}
-                <tr>
-                    {% for value in row %}
-                    <td style="background: {% if value < 3 %}#6fcf97{% elif value < 7 %}#f2c94c{% else %}#f2994a{% endif %};">
-                        {{ value }}
-                    </td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </table>
-        
-            <form method="get" action="{% url 'predict_diagnosis' screening_id %}">
-                <button class="predict-btn" type="submit" style="margin-top:20px;">Predict Diagnosis</button>
-            </form>
+            <h1 class="results-title">Screening Results</h1>
+            
+            <div class="heatmap-wrapper" tabindex="0" aria-label="Sensor data heatmap">
+                <table class="heatmap" role="grid">
+                    <caption class="sr-only">Ultrasonic sensor readings with color-coded values</caption>
+                    <tbody>
+                        {% for row in sensor_data %}
+                        <tr>
+                            {% for value in row %}
+                            <td 
+                                style="background: {% if value <= 30 %}#6fcf97{% elif value <= 60 %}#f2c94c{% else %}#f2994a{% endif %};"
+                                aria-label="Sensor value {{ value }}"
+                            >
+                                {{ value }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #6fcf97;"></span>
+                    <span class="legend-label">Low (≤30)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #f2c94c;"></span>
+                    <span class="legend-label">Medium (≤60)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #f2994a;"></span>
+                    <span class="legend-label">High (>60)</span>
+                </div>
+            </div>
+            
+            {% if screening_id %}
+            <div class="action-buttons">
+                <a href="{% url 'predict_diagnosis' screening_id %}" class="predict-btn">
+                    Predict Diagnosis
+                    <span class="sr-only">for screening ID {{ screening_id }}</span>
+                </a>
+            </div>
+            {% endif %}
         </div>
-    </div>
-    
+    </main>
+
+    <style>
+        /* Temporary inline styles for legend - move to CSS file later */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 2px;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
 </body>
 </html>

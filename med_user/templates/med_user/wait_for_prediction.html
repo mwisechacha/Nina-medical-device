@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{% static 'css/wait_for_device.css' %}">
     <script>
         setTimeout(function(){
-            window.location.href = "/result/{{ screening_id }}/";
+            window.location.href = "{% url 'predict_diagnosis' screening_id %}";
         }, 4000);  // 4 seconds wait
     </script>
 </head>

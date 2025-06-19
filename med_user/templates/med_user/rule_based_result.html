@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule-Based Screening Results</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/results.css' %}">
+</head>
+<body>
+    <div class="results-container">
+        <div class="logo-container">
+            <img src="{% static 'images/nina-logo.png' %}" alt="Nina Logo">
+        </div>
+        
+        <div class="content-wrapper">
+            <div class="heatmap-section">
+                <h2>Sensor Data Heatmap</h2>
+                <div class="heatmap-wrapper">
+                    <table class="heatmap">
+                        {% for row in sensor_data %}
+                        <tr>
+                            {% for value in row %}
+                            <td style="background: {% if value <= 30 %}#6fcf97{% elif value <= 60 %}#f2c94c{% else %}#f2994a{% endif %};">
+                                {{ value }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #6fcf97;"></span>
+                        <span>Normal (≤30)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #f2c94c;"></span>
+                        <span>Benign (≤60)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #f2994a;"></span>
+                        <span>Suspicious (>60)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="diagnosis-section">
+                <h2>Rule-Based Analysis</h2>
+                
+                <div class="diagnosis-card diagnosis-{{ rule_based_diagnosis.risk_level }}">
+                    <h3>{{ rule_based_diagnosis.label }}</h3>
+                    <p>{{ rule_based_diagnosis.recommendation }}</p>
+                    
+                    <div class="criteria">
+                        <h4>Evaluation Criteria:</h4>
+                        <ul>
+                            <li>Normal (0-30): {{ normal_count }} zones</li>
+                            <li>Benign (31-60): {{ benign_count }} zones</li>
+                            <li>Suspicious (>60): {{ suspicious_count }} zones</li>
+                        </ul>
+                        
+                        {% if rule_based_diagnosis.risk_level == 'high' %}
+                        <div class="warning">
+                            <strong>Warning:</strong> Multiple suspicious zones detected. 
+                            Central zone value: {{ center_zone_value }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'predict_diagnosis' screening_id %}" class="btn btn-model">
+                        Compare with AI Model Analysis
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-home">
+                        Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
