@@ -38,10 +38,14 @@ def predict(screening_id):
         matrix = np.array(json.loads(obj.matrix_json))
         print("Loaded matrix from DB:", matrix.shape)
 
-        # Check for empty/invalid matrix
+        # Check for invalid matrix
         if np.all(matrix <= 0):
             print("[predict()] WARNING: Matrix is empty or invalid, returning 'Benign' by default")
-            return "Benign"
+            return "Benign", "", 0.0 
+        
+        # Check for invalid readings
+        if np.any(matrix == -1):
+            return "Invalid", "", 0.0
 
         flat = matrix.flatten().astype(np.float32)
 
@@ -77,18 +81,16 @@ def predict(screening_id):
         print(f"[predict()] Model raw output: {score:.2f}")
         print(f"[predict()] Predicted class: {prediction_label}")
 
-        return prediction_label, visualization_path
+        return prediction_label, visualization_path, score
 
     except Exception as e:
         print(f"[predict()] ERROR: {e}")
-        return "Error"
+        return "Error", None
     
 def save_upsampled_visualization(original_matrix, upsampled_array, screening_id):
-    # Create figure
     plt.figure(figsize=(12, 6))
     gs = gridspec.GridSpec(1, 2, width_ratios=[1, 3])
     
-    # Plot original 3x3 matrix
     ax1 = plt.subplot(gs[0])
     cax1 = ax1.matshow(original_matrix, cmap='viridis')
     plt.colorbar(cax1, ax=ax1)
@@ -96,7 +98,6 @@ def save_upsampled_visualization(original_matrix, upsampled_array, screening_id)
     ax1.set_xticks(range(3))
     ax1.set_yticks(range(3))
     
-    # Plot upsampled 224x224 array
     ax2 = plt.subplot(gs[1])
     cax2 = ax2.imshow(upsampled_array, cmap='viridis', interpolation='nearest')
     plt.colorbar(cax2, ax=ax2)

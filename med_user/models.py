@@ -5,6 +5,7 @@ class ScreeningData(models.Model):
     matrix_json = models.TextField()
     visualization = models.ImageField(upload_to='visualizations/', blank=True, null=True)
     diagnosis = models.CharField(max_length=100, blank=True, null=True)
+    score = models.FloatField(blank=True, null=True)
 
     def get_matrix(self):
         import json

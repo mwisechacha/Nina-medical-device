@@ -47,28 +47,47 @@
             </div>
             
             <div class="diagnosis-section">
-                <h2>Rule-Based Analysis</h2>
-                
-                <div class="diagnosis-card diagnosis-{{ rule_based_diagnosis.risk_level }}">
-                    <h3>{{ rule_based_diagnosis.label }}</h3>
-                    <p>{{ rule_based_diagnosis.recommendation }}</p>
-                    
-                    <div class="criteria">
-                        <h4>Evaluation Criteria:</h4>
-                        <ul>
-                            <li>Normal (0-30): {{ normal_count }} zones</li>
-                            <li>Benign (31-60): {{ benign_count }} zones</li>
-                            <li>Suspicious (>60): {{ suspicious_count }} zones</li>
-                        </ul>
-                        
-                        {% if rule_based_diagnosis.risk_level == 'high' %}
-                        <div class="warning">
-                            <strong>Warning:</strong> Multiple suspicious zones detected. 
-                            Central zone value: {{ center_zone_value }}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+    <h2>Rule-Based Analysis</h2>
+    
+    <div class="diagnosis-card diagnosis-{{ rule_based_diagnosis.risk_level }}">
+        <h3>{{ rule_based_diagnosis.label }}</h3>
+        <p>{{ rule_based_diagnosis.recommendation }}</p>
+        
+        <div class="criteria">
+            <h4>Evaluation Criteria:</h4>
+            <ul>
+                <li>Normal (0-30): {{ normal_count }} zones</li>
+                <li>Benign (31-60): {{ benign_count }} zones</li>
+                <li>Suspicious (>60): {{ suspicious_count }} zones</li>
+                {% if invalid_count > 0 %}
+                <li class="invalid-reading">Invalid readings (-1): {{ invalid_count }} zones</li>
+                {% endif %}
+            </ul>
+            
+            {% if rule_based_diagnosis.risk_level == 'invalid' %}
+            <div class="scan-instructions">
+                <h4>Scanning Instructions:</h4>
+                <ol>
+                    <li>Ensure the device is properly positioned</li>
+                    <li>Apply consistent pressure</li>
+                    <li>Move slowly in circular motions</li>
+                    <li>Maintain contact with skin throughout</li>
+                </ol>
+                <a href="{% url 'try_it_out' %}" class="btn btn-rescan">
+                    Try Scanning Again
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if rule_based_diagnosis.risk_level == 'high' %}
+            <div class="warning">
+                <strong>Warning:</strong> Multiple suspicious zones detected. 
+                Central zone value: {{ center_zone_value }}
+            </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
                 
                 <div class="action-buttons">
                     <a href="{% url 'predict_diagnosis' screening_id %}" class="btn btn-model">

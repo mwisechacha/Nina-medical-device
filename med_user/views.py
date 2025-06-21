@@ -21,7 +21,7 @@ def try_it_out(request):
         'screening_id': waiting_screening_id or 0
     })
 
-# AJAX polling endpoint: check if data ready
+# check if data ready
 def check_data_ready(request):
     global waiting_screening_id
     if waiting_screening_id:
@@ -29,7 +29,7 @@ def check_data_ready(request):
     else:
         return JsonResponse({'ready': False})
 
-# View: show "Data Received" page
+# data recieved
 def show_data_received(request, screening_id):
     return render(request, 'med_user/data_received.html', {
         'screening_id': screening_id
@@ -65,6 +65,16 @@ def receive_screening_data(request):
         return JsonResponse({'error': 'Invalid request method'}, status=405)
     
 def get_rule_based_diagnosis(matrix):
+    invalid_count = sum(1 for row in matrix for value in row if value == -1)
+    
+    if invalid_count > 0:
+        return {
+            'risk_level': 'invalid',
+            'label': 'Invalid Scan',
+            'recommendation': 'Please try scanning again following the instructions manual',
+            'invalid_zones': invalid_count
+        }
+
     normal_count = 0
     benign_count = 0
     suspicious_count = 0
@@ -109,6 +119,7 @@ def show_tumor_data(request, screening_id):
     normal_count = sum(1 for row in matrix for value in row if value <= 30)
     benign_count = sum(1 for row in matrix for value in row if 30 < value <= 60)
     suspicious_count = sum(1 for row in matrix for value in row if value > 60)
+    invalid_count = sum(1 for row in matrix for value in row if value == -1)
     
     return render(request, 'med_user/rule_based_result.html', {
         'screening_id': screening_id,
@@ -117,10 +128,10 @@ def show_tumor_data(request, screening_id):
         'normal_count': normal_count,
         'benign_count': benign_count,
         'suspicious_count': suspicious_count,
-        'center_zone_value': matrix[1][1]  # Assuming 3x3 matrix
+        'center_zone_value': matrix[1][1]
     })
 
-# Optional: second wait page for model
+# second wait
 def model_wait(request):
     global waiting_screening_id
 
@@ -135,13 +146,16 @@ def model_wait(request):
 def predict_diagnosis(request, screening_id):
     obj = ScreeningData.objects.get(id=screening_id)
 
-    prediction_label, visualization_path  = predict(screening_id)
+    prediction_label, visualization_path, score  = predict(screening_id)
 
     if visualization_path:
         obj.visualization = visualization_path
 
+    score = float(score * 100) 
+
     # Save diagnosis
     obj.diagnosis = prediction_label
+    obj.score = round(score, 2)
     obj.save()
 
     return redirect('prediction_result', screening_id=screening_id)
@@ -152,6 +166,7 @@ def prediction_result(request, screening_id):
     return render(request, 'med_user/prediction_result.html', {
         'screening_id': screening_id,
         'diagnosis': obj.diagnosis,
+        'score': obj.score,
         'sensor_data': obj.get_matrix().reshape(3, 3),
         'visualization_url': obj.visualization.url if obj.visualization else None
     })

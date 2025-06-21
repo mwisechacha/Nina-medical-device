@@ -57,9 +57,9 @@
                     <h3>{% if diagnosis == 'Malignant' %}Malignant - Possible Tumor{% else %}Benign - Likely Normal{% endif %}</h3>
                     
                     <div class="model-details">
-                        <h4>Model Confidence: <span class="confidence-value">85%</span></h4>
+                        <h4>Model Confidence: <span class="confidence-value">{{score}}%</span></h4>
                         <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: 85%;"></div>
+                            <div class="confidence-fill" style="width: {{ score|floatformat:2  }}%;"></div>
                         </div>
                     </div>
                     
